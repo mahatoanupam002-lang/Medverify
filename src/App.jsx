@@ -30,28 +30,117 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 
 /* ------------------------------------------------------------------ MOCK SEED DATA */
 
-// West Bengal Medical Council (WBMC) — registration format: WB-YYYY-NNNNN
+/*
+ * West Bengal Medical Council (WBMC) — complete mock register
+ * Registration format : WB-YYYY-NNNNN
+ * Sorted chronologically oldest → newest (1960 – 2025).
+ * Serial numbers within each year are realistic (low in early decades,
+ * rising as intake grew; modern years exceed 70 000+).
+ * Status reflects age of registration:
+ *   pre-1985  → mostly expired (practice licences lapsed / death)
+ *   1985-2000 → mix of active senior consultants and expired
+ *   2001+     → predominantly active; rare suspensions
+ */
 const WBMC_DOCTORS = [
-  { regNo: "WB-2014-44871", councilCode: "WBMC", name: "Dr. Ananya Bhattacharya",   qualification: "MBBS, MD (General Medicine)",           regYear: 2014, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
-  { regNo: "WB-1998-12044", councilCode: "WBMC", name: "Dr. Sunil Ghosh",           qualification: "MBBS, MD (Psychiatry)",                 regYear: 1998, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
-  { regNo: "WB-2007-28934", councilCode: "WBMC", name: "Dr. Debashis Mukherjee",    qualification: "MBBS, MS (General Surgery)",            regYear: 2007, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
-  { regNo: "WB-2011-36501", councilCode: "WBMC", name: "Dr. Rituparna Banerjee",    qualification: "MBBS, MD (Obstetrics & Gynaecology)",   regYear: 2011, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
-  { regNo: "WB-2016-52210", councilCode: "WBMC", name: "Dr. Sourav Chatterjee",     qualification: "MBBS, DNB (Cardiology)",                regYear: 2016, status: "active",    verifiedSource: "nmr",    claimStatus: "verified"  },
-  { regNo: "WB-2003-19872", councilCode: "WBMC", name: "Dr. Mitali Das",            qualification: "MBBS, MD (Dermatology)",                regYear: 2003, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
-  { regNo: "WB-2019-61034", councilCode: "WBMC", name: "Dr. Arjun Sen",             qualification: "MBBS",                                  regYear: 2019, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
-  { regNo: "WB-2009-31188", councilCode: "WBMC", name: "Dr. Paramita Roy",          qualification: "MBBS, MS (Ophthalmology)",              regYear: 2009, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
-  { regNo: "WB-2001-14453", councilCode: "WBMC", name: "Dr. Biswanath Pal",         qualification: "MBBS, MD (Respiratory Medicine)",       regYear: 2001, status: "suspended", verifiedSource: "state",  claimStatus: "unclaimed" },
-  { regNo: "WB-2015-47799", councilCode: "WBMC", name: "Dr. Sreya Chakraborty",     qualification: "MBBS, DNB (Paediatrics)",               regYear: 2015, status: "active",    verifiedSource: "state",  claimStatus: "pending"   },
-  { regNo: "WB-2012-39620", councilCode: "WBMC", name: "Dr. Abhijit Mandal",        qualification: "MBBS, MS (Orthopaedics)",               regYear: 2012, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
-  { regNo: "WB-2005-23017", councilCode: "WBMC", name: "Dr. Sumana Dey",            qualification: "MBBS, MD (Anaesthesiology)",            regYear: 2005, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
-  { regNo: "WB-2020-67841", councilCode: "WBMC", name: "Dr. Rahul Ganguly",         qualification: "MBBS",                                  regYear: 2020, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
-  { regNo: "WB-1995-08312", councilCode: "WBMC", name: "Dr. Tapas Kumar Bose",      qualification: "MBBS, MD (Nephrology), DM",            regYear: 1995, status: "active",    verifiedSource: "manual", claimStatus: "verified"  },
-  { regNo: "WB-2017-55403", councilCode: "WBMC", name: "Dr. Debarati Sinha",        qualification: "MBBS, MD (Pathology)",                  regYear: 2017, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
-  { regNo: "WB-2008-29761", councilCode: "WBMC", name: "Dr. Aniruddha Mondal",      qualification: "MBBS, DNB (Neurology)",                 regYear: 2008, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
-  { regNo: "WB-2022-73156", councilCode: "WBMC", name: "Dr. Puja Sarkar",           qualification: "MBBS",                                  regYear: 2022, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
-  { regNo: "WB-2000-13044", councilCode: "WBMC", name: "Dr. Subhadeep Ghosh",       qualification: "MBBS, MS (ENT)",                        regYear: 2000, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
-  { regNo: "WB-2013-41997", councilCode: "WBMC", name: "Dr. Ishita Majumder",       qualification: "MBBS, MD (Radiology)",                  regYear: 2013, status: "active",    verifiedSource: "state",  claimStatus: "pending"   },
-  { regNo: "WB-2018-58823", councilCode: "WBMC", name: "Dr. Pratik Biswas",         qualification: "MBBS, DNB (Emergency Medicine)",        regYear: 2018, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  // ── 1960s ───────────────────────────────────────────────────────────────
+  { regNo: "WB-1960-00187", councilCode: "WBMC", name: "Dr. Amalendu Bandyopadhyay",  qualification: "MBBS, MS (General Surgery)",              regYear: 1960, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1963-00341", councilCode: "WBMC", name: "Dr. Kamala Prasad Chatterjee",qualification: "MBBS",                                    regYear: 1963, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1966-00528", councilCode: "WBMC", name: "Dr. Sudhanshu Bose",          qualification: "MBBS, MD (Internal Medicine)",            regYear: 1966, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1968-00704", councilCode: "WBMC", name: "Dr. Mrinalini Devi",          qualification: "MBBS, DGO",                               regYear: 1968, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+
+  // ── 1970s ───────────────────────────────────────────────────────────────
+  { regNo: "WB-1971-01092", councilCode: "WBMC", name: "Dr. Bimal Krishna Ghosh",     qualification: "MBBS, MD (Paediatrics)",                  regYear: 1971, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1973-01388", councilCode: "WBMC", name: "Dr. Pratima Sengupta",        qualification: "MBBS, DPM (Psychiatry)",                  regYear: 1973, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1975-01756", councilCode: "WBMC", name: "Dr. Nirmal Chandra Dey",      qualification: "MBBS, MS (ENT)",                          regYear: 1975, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1977-02143", councilCode: "WBMC", name: "Dr. Asit Kumar Mitra",        qualification: "MBBS, MD (Tuberculosis & Chest)",         regYear: 1977, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1979-02589", councilCode: "WBMC", name: "Dr. Chhanda Roy",             qualification: "MBBS, DO (Ophthalmology)",                regYear: 1979, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+
+  // ── 1980s ───────────────────────────────────────────────────────────────
+  { regNo: "WB-1981-03214", councilCode: "WBMC", name: "Dr. Shyamal Kumar Nandi",     qualification: "MBBS, MS (Orthopaedics)",                 regYear: 1981, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1983-03891", councilCode: "WBMC", name: "Dr. Gita Chakraborty",        qualification: "MBBS, MD (Obstetrics & Gynaecology)",     regYear: 1983, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1985-04502", councilCode: "WBMC", name: "Dr. Debabrata Mukherjee",     qualification: "MBBS, MD (General Medicine)",             regYear: 1985, status: "active",    verifiedSource: "manual", claimStatus: "verified"  },
+  { regNo: "WB-1986-04811", councilCode: "WBMC", name: "Dr. Ranjit Kumar Pal",        qualification: "MBBS, MS (General Surgery)",              regYear: 1986, status: "active",    verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1987-05199", councilCode: "WBMC", name: "Dr. Sabita Biswas",           qualification: "MBBS, DPH (Public Health)",               regYear: 1987, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1988-05634", councilCode: "WBMC", name: "Dr. Haren Mondal",            qualification: "MBBS, MD (Dermatology & Venereology)",    regYear: 1988, status: "active",    verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1989-06012", councilCode: "WBMC", name: "Dr. Shipra Ghosh",            qualification: "MBBS, DA (Anaesthesiology)",              regYear: 1989, status: "active",    verifiedSource: "manual", claimStatus: "unclaimed" },
+
+  // ── 1990s ───────────────────────────────────────────────────────────────
+  { regNo: "WB-1990-06549", councilCode: "WBMC", name: "Dr. Manas Ranjan Saha",       qualification: "MBBS, MD (Radiology)",                    regYear: 1990, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-1991-07033", councilCode: "WBMC", name: "Dr. Chaitali Bose",           qualification: "MBBS, DGO, MD (Gynaecology)",             regYear: 1991, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-1992-07498", councilCode: "WBMC", name: "Dr. Partha Sarathi Roy",      qualification: "MBBS, MD (Nephrology), DM",               regYear: 1992, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-1993-07944", councilCode: "WBMC", name: "Dr. Alakananda Bhattacharya", qualification: "MBBS, MS (Ophthalmology)",                regYear: 1993, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-1994-08301", councilCode: "WBMC", name: "Dr. Sujit Kumar Das",         qualification: "MBBS, MD (Neurology), DM",                regYear: 1994, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-1995-08312", councilCode: "WBMC", name: "Dr. Tapas Kumar Bose",        qualification: "MBBS, MD (Nephrology), DM",               regYear: 1995, status: "active",    verifiedSource: "manual", claimStatus: "verified"  },
+  { regNo: "WB-1995-08567", councilCode: "WBMC", name: "Dr. Soma Chatterjee",         qualification: "MBBS, MD (Pathology)",                    regYear: 1995, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-1996-09124", councilCode: "WBMC", name: "Dr. Pinaki Roy",              qualification: "MBBS, MS (ENT)",                          regYear: 1996, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-1996-09388", councilCode: "WBMC", name: "Dr. Amrita Sen",              qualification: "MBBS, MD (Anaesthesiology)",              regYear: 1996, status: "suspended", verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-1997-10012", councilCode: "WBMC", name: "Dr. Krishnendu Mondal",       qualification: "MBBS, MS (Urology), MCh",                 regYear: 1997, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-1998-12044", councilCode: "WBMC", name: "Dr. Sunil Ghosh",             qualification: "MBBS, MD (Psychiatry)",                   regYear: 1998, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-1998-12301", councilCode: "WBMC", name: "Dr. Dipankar Bandyopadhyay", qualification: "MBBS, MD (Cardiology), DM",               regYear: 1998, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-1999-12899", councilCode: "WBMC", name: "Dr. Moumita Datta",           qualification: "MBBS, MS (Orthopaedics)",                 regYear: 1999, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+
+  // ── 2000s ───────────────────────────────────────────────────────────────
+  { regNo: "WB-2000-13044", councilCode: "WBMC", name: "Dr. Subhadeep Ghosh",         qualification: "MBBS, MS (ENT)",                          regYear: 2000, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-2000-13512", councilCode: "WBMC", name: "Dr. Rajashree Pal",           qualification: "MBBS, MD (Microbiology)",                 regYear: 2000, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2001-14453", councilCode: "WBMC", name: "Dr. Biswanath Pal",           qualification: "MBBS, MD (Respiratory Medicine)",         regYear: 2001, status: "suspended", verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2001-14882", councilCode: "WBMC", name: "Dr. Suparna Mitra",           qualification: "MBBS, MD (Community Medicine)",           regYear: 2001, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2002-16037", councilCode: "WBMC", name: "Dr. Dibyendu Nath",           qualification: "MBBS, MS (General Surgery)",              regYear: 2002, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2002-16499", councilCode: "WBMC", name: "Dr. Barnali Ghosh",           qualification: "MBBS, MD (Biochemistry)",                 regYear: 2002, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2003-18210", councilCode: "WBMC", name: "Dr. Sougata Roy Choudhury",   qualification: "MBBS, DNB (Cardiology)",                  regYear: 2003, status: "active",    verifiedSource: "nmr",    claimStatus: "verified"  },
+  { regNo: "WB-2003-19872", councilCode: "WBMC", name: "Dr. Mitali Das",              qualification: "MBBS, MD (Dermatology)",                  regYear: 2003, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2004-21044", councilCode: "WBMC", name: "Dr. Ashis Bhattacharya",      qualification: "MBBS, MD (Geriatric Medicine)",           regYear: 2004, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2004-21677", councilCode: "WBMC", name: "Dr. Ruma Ganguly",            qualification: "MBBS, MDS (Oral & Maxillofacial Surgery)",regYear: 2004, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2005-23017", councilCode: "WBMC", name: "Dr. Sumana Dey",              qualification: "MBBS, MD (Anaesthesiology)",              regYear: 2005, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2005-23841", councilCode: "WBMC", name: "Dr. Subrata Kundu",           qualification: "MBBS, MD (Physical Medicine & Rehab)",    regYear: 2005, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2006-25503", councilCode: "WBMC", name: "Dr. Tanmoy Bhowmick",         qualification: "MBBS, MS (Ophthalmology)",                regYear: 2006, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2006-26119", councilCode: "WBMC", name: "Dr. Jayashree Mukherjee",     qualification: "MBBS, DPM (Psychiatry)",                  regYear: 2006, status: "active",    verifiedSource: "state",  claimStatus: "pending"   },
+  { regNo: "WB-2007-27688", councilCode: "WBMC", name: "Dr. Sudip Chakraborty",       qualification: "MBBS, DNB (Orthopaedics)",                regYear: 2007, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2007-28934", councilCode: "WBMC", name: "Dr. Debashis Mukherjee",      qualification: "MBBS, MS (General Surgery)",              regYear: 2007, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-2008-29761", councilCode: "WBMC", name: "Dr. Aniruddha Mondal",        qualification: "MBBS, DNB (Neurology)",                   regYear: 2008, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-2008-30422", councilCode: "WBMC", name: "Dr. Nilufar Begum",           qualification: "MBBS, MD (Obstetrics & Gynaecology)",     regYear: 2008, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2009-31188", councilCode: "WBMC", name: "Dr. Paramita Roy",            qualification: "MBBS, MS (Ophthalmology)",                regYear: 2009, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-2009-31904", councilCode: "WBMC", name: "Dr. Kaushik Saha",            qualification: "MBBS, MD (Nuclear Medicine)",             regYear: 2009, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+
+  // ── 2010s ───────────────────────────────────────────────────────────────
+  { regNo: "WB-2010-33201", councilCode: "WBMC", name: "Dr. Sreemoyee Banerjee",      qualification: "MBBS, MD (Pathology)",                    regYear: 2010, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2010-33880", councilCode: "WBMC", name: "Dr. Prasenjit Dey",           qualification: "MBBS, MS (Urology), MCh",                 regYear: 2010, status: "active",    verifiedSource: "nmr",    claimStatus: "verified"  },
+  { regNo: "WB-2011-35012", councilCode: "WBMC", name: "Dr. Ankita Das",              qualification: "MBBS, MD (Dermatology & Venereology)",    regYear: 2011, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2011-36501", councilCode: "WBMC", name: "Dr. Rituparna Banerjee",      qualification: "MBBS, MD (Obstetrics & Gynaecology)",     regYear: 2011, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2012-38044", councilCode: "WBMC", name: "Dr. Sandip Bhattacharya",     qualification: "MBBS, MD (Cardiology), DM",               regYear: 2012, status: "active",    verifiedSource: "nmr",    claimStatus: "verified"  },
+  { regNo: "WB-2012-39620", councilCode: "WBMC", name: "Dr. Abhijit Mandal",          qualification: "MBBS, MS (Orthopaedics)",                 regYear: 2012, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2013-40511", councilCode: "WBMC", name: "Dr. Debdutta Sengupta",       qualification: "MBBS, MD (Respiratory Medicine)",         regYear: 2013, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2013-41997", councilCode: "WBMC", name: "Dr. Ishita Majumder",         qualification: "MBBS, MD (Radiology)",                    regYear: 2013, status: "active",    verifiedSource: "state",  claimStatus: "pending"   },
+  { regNo: "WB-2014-43112", councilCode: "WBMC", name: "Dr. Soumya Roy",              qualification: "MBBS, DNB (Emergency Medicine)",          regYear: 2014, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2014-44871", councilCode: "WBMC", name: "Dr. Ananya Bhattacharya",     qualification: "MBBS, MD (General Medicine)",             regYear: 2014, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-2015-46230", councilCode: "WBMC", name: "Dr. Kallol Kumar Dutta",      qualification: "MBBS, MS (Plastic Surgery), MCh",         regYear: 2015, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2015-47799", councilCode: "WBMC", name: "Dr. Sreya Chakraborty",       qualification: "MBBS, DNB (Paediatrics)",                 regYear: 2015, status: "active",    verifiedSource: "state",  claimStatus: "pending"   },
+  { regNo: "WB-2016-49904", councilCode: "WBMC", name: "Dr. Subhasis Samanta",        qualification: "MBBS, MD (Anaesthesiology)",              regYear: 2016, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2016-52210", councilCode: "WBMC", name: "Dr. Sourav Chatterjee",       qualification: "MBBS, DNB (Cardiology)",                  regYear: 2016, status: "active",    verifiedSource: "nmr",    claimStatus: "verified"  },
+  { regNo: "WB-2017-53771", councilCode: "WBMC", name: "Dr. Tanushree Pal",           qualification: "MBBS, MD (Microbiology)",                 regYear: 2017, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2017-55403", councilCode: "WBMC", name: "Dr. Debarati Sinha",          qualification: "MBBS, MD (Pathology)",                    regYear: 2017, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2018-57002", councilCode: "WBMC", name: "Dr. Arnab Mitra",             qualification: "MBBS, DNB (Neurosurgery), MCh",           regYear: 2018, status: "active",    verifiedSource: "nmr",    claimStatus: "verified"  },
+  { regNo: "WB-2018-58823", councilCode: "WBMC", name: "Dr. Pratik Biswas",           qualification: "MBBS, DNB (Emergency Medicine)",          regYear: 2018, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2019-60044", councilCode: "WBMC", name: "Dr. Mohua Roy",               qualification: "MBBS, MD (Forensic Medicine)",            regYear: 2019, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2019-61034", councilCode: "WBMC", name: "Dr. Arjun Sen",               qualification: "MBBS",                                    regYear: 2019, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2019-62489", councilCode: "WBMC", name: "Dr. Priyanka Mondal",         qualification: "MBBS, DNB (Ophthalmology)",               regYear: 2019, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+
+  // ── 2020s ───────────────────────────────────────────────────────────────
+  { regNo: "WB-2020-64012", councilCode: "WBMC", name: "Dr. Sayan Bose",              qualification: "MBBS",                                    regYear: 2020, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2020-65731", councilCode: "WBMC", name: "Dr. Sreelekha Ghosh",         qualification: "MBBS, DNB (Paediatrics)",                 regYear: 2020, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2020-67841", councilCode: "WBMC", name: "Dr. Rahul Ganguly",           qualification: "MBBS",                                    regYear: 2020, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2021-69204", councilCode: "WBMC", name: "Dr. Debjani Hazra",           qualification: "MBBS",                                    regYear: 2021, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2021-70518", councilCode: "WBMC", name: "Dr. Shubham Das",             qualification: "MBBS",                                    regYear: 2021, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2021-71390", councilCode: "WBMC", name: "Dr. Anwesha Roy",             qualification: "MBBS, DNB (Anaesthesiology)",             regYear: 2021, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2022-72011", councilCode: "WBMC", name: "Dr. Soumen Sarkar",           qualification: "MBBS",                                    regYear: 2022, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2022-73156", councilCode: "WBMC", name: "Dr. Puja Sarkar",             qualification: "MBBS",                                    regYear: 2022, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2022-74403", councilCode: "WBMC", name: "Dr. Abhirup Chatterjee",      qualification: "MBBS",                                    regYear: 2022, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2023-75812", councilCode: "WBMC", name: "Dr. Sayantani Mitra",         qualification: "MBBS",                                    regYear: 2023, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2023-76990", councilCode: "WBMC", name: "Dr. Rishav Dey",              qualification: "MBBS",                                    regYear: 2023, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2024-78301", councilCode: "WBMC", name: "Dr. Diptarka Bose",           qualification: "MBBS",                                    regYear: 2024, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2024-79044", councilCode: "WBMC", name: "Dr. Arpita Halder",           qualification: "MBBS",                                    regYear: 2024, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2024-79988", councilCode: "WBMC", name: "Dr. Sohini Banerjee",         qualification: "MBBS",                                    regYear: 2024, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2025-81120", councilCode: "WBMC", name: "Dr. Agniv Das",               qualification: "MBBS",                                    regYear: 2025, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2025-81905", councilCode: "WBMC", name: "Dr. Trisha Chakraborty",      qualification: "MBBS",                                    regYear: 2025, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
 ];
 
 const SEED_DOCTORS = [
