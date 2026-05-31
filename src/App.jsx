@@ -29,13 +29,37 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 ===================================================================================== */
 
 /* ------------------------------------------------------------------ MOCK SEED DATA */
+
+// West Bengal Medical Council (WBMC) — registration format: WB-YYYY-NNNNN
+const WBMC_DOCTORS = [
+  { regNo: "WB-2014-44871", councilCode: "WBMC", name: "Dr. Ananya Bhattacharya",   qualification: "MBBS, MD (General Medicine)",           regYear: 2014, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-1998-12044", councilCode: "WBMC", name: "Dr. Sunil Ghosh",           qualification: "MBBS, MD (Psychiatry)",                 regYear: 1998, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-2007-28934", councilCode: "WBMC", name: "Dr. Debashis Mukherjee",    qualification: "MBBS, MS (General Surgery)",            regYear: 2007, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-2011-36501", councilCode: "WBMC", name: "Dr. Rituparna Banerjee",    qualification: "MBBS, MD (Obstetrics & Gynaecology)",   regYear: 2011, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2016-52210", councilCode: "WBMC", name: "Dr. Sourav Chatterjee",     qualification: "MBBS, DNB (Cardiology)",                regYear: 2016, status: "active",    verifiedSource: "nmr",    claimStatus: "verified"  },
+  { regNo: "WB-2003-19872", councilCode: "WBMC", name: "Dr. Mitali Das",            qualification: "MBBS, MD (Dermatology)",                regYear: 2003, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2019-61034", councilCode: "WBMC", name: "Dr. Arjun Sen",             qualification: "MBBS",                                  regYear: 2019, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2009-31188", councilCode: "WBMC", name: "Dr. Paramita Roy",          qualification: "MBBS, MS (Ophthalmology)",              regYear: 2009, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-2001-14453", councilCode: "WBMC", name: "Dr. Biswanath Pal",         qualification: "MBBS, MD (Respiratory Medicine)",       regYear: 2001, status: "suspended", verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2015-47799", councilCode: "WBMC", name: "Dr. Sreya Chakraborty",     qualification: "MBBS, DNB (Paediatrics)",               regYear: 2015, status: "active",    verifiedSource: "state",  claimStatus: "pending"   },
+  { regNo: "WB-2012-39620", councilCode: "WBMC", name: "Dr. Abhijit Mandal",        qualification: "MBBS, MS (Orthopaedics)",               regYear: 2012, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2005-23017", councilCode: "WBMC", name: "Dr. Sumana Dey",            qualification: "MBBS, MD (Anaesthesiology)",            regYear: 2005, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2020-67841", councilCode: "WBMC", name: "Dr. Rahul Ganguly",         qualification: "MBBS",                                  regYear: 2020, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-1995-08312", councilCode: "WBMC", name: "Dr. Tapas Kumar Bose",      qualification: "MBBS, MD (Nephrology), DM",            regYear: 1995, status: "active",    verifiedSource: "manual", claimStatus: "verified"  },
+  { regNo: "WB-2017-55403", councilCode: "WBMC", name: "Dr. Debarati Sinha",        qualification: "MBBS, MD (Pathology)",                  regYear: 2017, status: "active",    verifiedSource: "state",  claimStatus: "unclaimed" },
+  { regNo: "WB-2008-29761", councilCode: "WBMC", name: "Dr. Aniruddha Mondal",      qualification: "MBBS, DNB (Neurology)",                 regYear: 2008, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
+  { regNo: "WB-2022-73156", councilCode: "WBMC", name: "Dr. Puja Sarkar",           qualification: "MBBS",                                  regYear: 2022, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  { regNo: "WB-2000-13044", councilCode: "WBMC", name: "Dr. Subhadeep Ghosh",       qualification: "MBBS, MS (ENT)",                        regYear: 2000, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
+  { regNo: "WB-2013-41997", councilCode: "WBMC", name: "Dr. Ishita Majumder",       qualification: "MBBS, MD (Radiology)",                  regYear: 2013, status: "active",    verifiedSource: "state",  claimStatus: "pending"   },
+  { regNo: "WB-2018-58823", councilCode: "WBMC", name: "Dr. Pratik Biswas",         qualification: "MBBS, DNB (Emergency Medicine)",        regYear: 2018, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+];
+
 const SEED_DOCTORS = [
-  { regNo: "WB-2014-44871",  councilCode: "WBMC", name: "Dr. Ananya Bhattacharya", qualification: "MBBS, MD (General Medicine)",  regYear: 2014, status: "active",    verifiedSource: "state",  claimStatus: "verified"  },
-  { regNo: "DMC-2009-10233", councilCode: "DMC",  name: "Dr. Rohan Mehta",         qualification: "MBBS, MS (Orthopaedics)",       regYear: 2009, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
-  { regNo: "MMC-2019-77120", councilCode: "MMC",  name: "Dr. Priya Nair",          qualification: "MBBS, DNB (Paediatrics)",       regYear: 2019, status: "active",    verifiedSource: "state",  claimStatus: "pending"   },
-  { regNo: "TNMC-2002-30119",councilCode: "TNMC", name: "Dr. Saravanan Iyer",      qualification: "MBBS",                         regYear: 2002, status: "suspended", verifiedSource: "state",  claimStatus: "unclaimed" },
-  { regNo: "WB-1998-12044",  councilCode: "WBMC", name: "Dr. Sunil Ghosh",         qualification: "MBBS, MD (Psychiatry)",         regYear: 1998, status: "expired",   verifiedSource: "manual", claimStatus: "unclaimed" },
-  { regNo: "KMC-2021-90551", councilCode: "KMC",  name: "Dr. Lakshmi Menon",       qualification: "MBBS",                         regYear: 2021, status: "active",    verifiedSource: "nmr",    claimStatus: "unclaimed" },
+  ...WBMC_DOCTORS,
+  { regNo: "DMC-2009-10233",  councilCode: "DMC",  name: "Dr. Rohan Mehta",   qualification: "MBBS, MS (Orthopaedics)",  regYear: 2009, status: "active",    verifiedSource: "nmr",   claimStatus: "unclaimed" },
+  { regNo: "MMC-2019-77120",  councilCode: "MMC",  name: "Dr. Priya Nair",    qualification: "MBBS, DNB (Paediatrics)", regYear: 2019, status: "active",    verifiedSource: "state", claimStatus: "pending"   },
+  { regNo: "TNMC-2002-30119", councilCode: "TNMC", name: "Dr. Saravanan Iyer",qualification: "MBBS",                    regYear: 2002, status: "suspended", verifiedSource: "state", claimStatus: "unclaimed" },
+  { regNo: "KMC-2021-90551",  councilCode: "KMC",  name: "Dr. Lakshmi Menon", qualification: "MBBS",                    regYear: 2021, status: "active",    verifiedSource: "nmr",   claimStatus: "unclaimed" },
 ];
 
 const COUNCILS = {
@@ -213,9 +237,10 @@ function Lookup({ user }) {
         {err && <div style={S.errText} role="alert">{err}</div>}
         <div style={S.hintRow}>
           Try:{" "}
-          <Chip onClick={() => quickFill("regNo", "WB-2014-44871")}>active</Chip>
-          <Chip onClick={() => quickFill("regNo", "TNMC-2002-30119")}>suspended</Chip>
-          <Chip onClick={() => quickFill("regNo", "WB-1998-12044")}>expired</Chip>
+          <Chip onClick={() => quickFill("regNo", "WB-2016-52210")}>WBMC active</Chip>
+          <Chip onClick={() => quickFill("regNo", "WB-2001-14453")}>WBMC suspended</Chip>
+          <Chip onClick={() => quickFill("regNo", "WB-1998-12044")}>WBMC expired</Chip>
+          <Chip onClick={() => quickFill("name", "Mukherjee")}>search by name</Chip>
           <Chip onClick={() => quickFill("name", "Imposter")}>no record</Chip>
         </div>
       </div>
